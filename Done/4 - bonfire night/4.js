@@ -6,18 +6,13 @@ canvas.height = window.innerHeight;
 
 canvas.style.backgroundColor = '#404040';
 
-// 1. Bulid lines out from a point
-
 var lastTime = Date.now();
-
 var bangRadius0 = 3;
 
 
 function firework(position, timeDelta) {
 
-
 	if (timeDelta > position.startDelay){
-
 		smallBang(position, timeDelta-position.startDelay);
 		trails(position, timeDelta-position.startDelay);
 	}
@@ -40,15 +35,10 @@ function drawCircle(x,y,radius, color) {
 	context.arc(x,y,radius,0,Math.PI*2);
 	context.fillStyle=color;
 	context.fill();
-
-
 }
 
 
-
 function trails(position, timeDelta){
-
-
 	
 		for (var i=0;i<position.trailCount;i++) {
 
@@ -58,8 +48,6 @@ function trails(position, timeDelta){
 }
 
 
-	
-
 function oneTrail(position, timeDelta, degree) {
 
 
@@ -67,9 +55,7 @@ function oneTrail(position, timeDelta, degree) {
 	var startDeltaY = 20 * Math.sin(degree)
 
 	var deltaX = (timeDelta * Math.cos(degree));
-	var deltaY = (timeDelta * Math.sin(degree));
-
-	
+	var deltaY = (timeDelta * Math.sin(degree));	
 
 	if (timeDelta > position.trailDuration) {
 		var deltaX = (position.trailDuration * Math.cos(degree));
@@ -82,14 +68,7 @@ function oneTrail(position, timeDelta, degree) {
 		y:position.y + deltaY
 	}
 
-
-
-
 	if (timeDelta < position.trailDuration + 300) {
-
-
-		
-
 
 		context.lineWidth = (position.trailDuration - timeDelta + 300)/100;
 		context.lineCap = 'round';
@@ -102,17 +81,13 @@ function oneTrail(position, timeDelta, degree) {
 
 	}
 
-
 	if (timeDelta < position.trailDuration) {	
 
     	drawCircle(trailPosition.x, trailPosition.y, 2, position.color)
 
-	}	
-
-    
+	}	    
 
 }
-
 
 
 function draw() {
@@ -205,25 +180,11 @@ function draw() {
 
 	}
 
-
 	for (var j=0;j<fireworks.length;j++){
 		firework(fireworks[j], timeDelta);	
 	}
 	
-
-	
-
-	
-
 	requestAnimationFrame(draw);
 }
 
-
-
-
-
 requestAnimationFrame(draw);
-
-
-// 2. Set that point to mouse clicks
-
