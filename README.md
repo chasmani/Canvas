@@ -6,6 +6,7 @@ These exercises were done to improve my javascript skills. As such, the earlier 
 
 All animation can be seen at http://www.chasmani.com/canvas
 
+## Done Animations
 
 ### 1 - [circle in a circle](http://www.chasmani.com/canvas/1)
 
@@ -58,3 +59,7 @@ Each butterfly consists of 3 traingles drawn around a center point. The shape of
 These rockets learn a path to the target through the use of an evolutionary algorithm. The fitness of each rocket is determined by how close it gets to the target, with fitter rockets more likely to pass on thier dna to the next generation. Each rocket has 1 main thruster, 1 thruster to turn left and 1 to turn right. The dna string determines which thruster(s) the rocket fires on each animation frame.  
 
 Inspiired by this [youtube video](https://www.youtube.com/watch?v=bGz7mv2vD6g), which was in turn inspired by this [flash implementation](http://www.blprnt.com/smartrockets/) 
+
+## In Progress Animations
+
+These are works in progress and so are not documented.
