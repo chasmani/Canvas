@@ -66,6 +66,12 @@ The rockets from the previous animation now have a wall to contend with, and ani
 
 Will they find the way to the asteroid? They usually do within baout 20 generations. But sometimes they get stuck in an evolutionary niche where they all fly off into one of the walls. Given enough time, they will always evolve and find the optimal path to the asteroid, it just might take a very long time. 
 
+### 13 [boxes](http://www.chasmani.com/canvas/13)
+
+A box that breaks apart when you click on it, then puts itself back together. 
+
+I built my own isometric vector system, so I could easily build 3d isometric shapes.
+
 
 ## In Progress Animations
 
