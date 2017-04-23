@@ -35,10 +35,8 @@ function setup() {
 	unitSize = Math.min(window.innerHeight, window.innerWidth)/15;
 	center = {
 		x:window.innerWidth/2,
-		y:8*window.innerHeight/16
+		y:window.innerHeight/2
 	}
-	context.lineWidth = 10;
-	context.lineCap = 'round';
 	canvas.style.backgroundColor = '#262626';
 	setVectors(angle);
 }
@@ -176,6 +174,11 @@ function draw() {
 	requestAnimationFrame(draw);
 }
 
+function is_touch_device() {
+  return 'ontouchstart' in window        // works on most browsers 
+      || navigator.maxTouchPoints;       // works on IE10/11 and Surface
+};
+
 
 window.addEventListener('resize', function(event){
 	setup();
@@ -183,20 +186,17 @@ window.addEventListener('resize', function(event){
 
 
 window.addEventListener('click', function(event) {
-	console.log("CLICK!");
 	state.transition();
 });
 
 
 window.addEventListener('mousemove', function(event){
-	xPosProportional = event.pageX/window.innerWidth;
-	angle = (3 - 2*xPosProportional)*Math.PI/8;
-	setVectors(angle);
+	if (!is_touch_device()){
+		xPosProportional = event.pageX/window.innerWidth;
+		angle = (3 - 2*xPosProportional)*Math.PI/8;
+		setVectors(angle);
+	}
 })
 
 
 requestAnimationFrame(draw);
-
-// TO DO - Turn off angle on mouse for touchscreens
-// Make nicer colours
-// Publish it
