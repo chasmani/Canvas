@@ -37,6 +37,7 @@ function Node(key, x, y, level) {
 		if (value<this.key) {
 			if (this.left == null){
 				this.left = new Node(value, this.x - this.nodeGap, this.y+150, this.level+1);
+				this.drawLine(this.left);
 				this.left.draw();
 			} else {
 				this.left.insert(value);
@@ -45,12 +46,14 @@ function Node(key, x, y, level) {
 		else if (value>this.key) {
 			if (this.right == null){
 				this.right = new Node(value, this.x + this.nodeGap, this.y+150, this.level+1);
+				this.drawLine(this.right);
 				this.right.draw();
 			} else {
 				this.right.insert(value);
 			}
 		}
 	}
+
 
 	this.draw = function() {
 		
