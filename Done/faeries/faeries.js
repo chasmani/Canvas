@@ -1,14 +1,23 @@
-/* Setup canvas and make it resize on demand */
-
-var canvas = document.getElementById('canvas_10');
+/* Grab canvas and context */
+var canvas = document.getElementById('my-canvas');
 var context = canvas.getContext('2d');
+
+/* Resize canvas function */
+function resizeCanvas() {
+	canvas.height = canvas.offsetHeight;
+	canvas.width = canvas.offsetWidth;
+}
+
+window.addEventListener('resize', function(event){
+    resizeCanvas();
+});
+
+resizeCanvas();
+
 
 canvas.style.backgroundColor = "#404040"
 
 var triangleMaxSize = 20;
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 
 var butterflyCount = canvas.width/100;
 
@@ -18,24 +27,25 @@ for (i=0;i<butterflyCount;i++){
 	butterflies.push(but);
 }
 
+light = new Light();
 
-light = new Light(200,200);
 
-stars = []
 
-for (i=0;i<butterflyCount*5;i++){
-	star = new Star(Math.random()*canvas.width,Math.random()*canvas.height);	
-	stars.push(star);
+function buildStars() {
+
+	newStars = []
+
+	for (i=0;i<butterflyCount*5;i++){
+		star = new Star(Math.random()*canvas.width,Math.random()*canvas.height);	
+		newStars.push(star);
+	}
+
+	return newStars;
+
 }
 
-function setup() {
-	
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
+var stars = buildStars(); 
 
-}
-
-window.addEventListener("resize", setup);
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -58,13 +68,10 @@ function getRandomGrey() {
 
 }
 
-
 function Butterfly(color) {
 
 	this.x = Math.random() * canvas.width;
 	this.y = Math.random() * canvas.height;
-
-	console.log(this.x, this.y);
 
 	this.velX = 0;
 	this.velY = 0;
@@ -146,22 +153,16 @@ function Butterfly(color) {
 
 function Light(x,y) {
 
-	this.x = x;
-	this.y = y;
-
 	this.draw = function(){
-
-		console.log(this.x, this.y);
 
 		context.save();
 		context.beginPath();
-		context.translate(this.x, this.y);
+		context.translate(canvas.width/4, canvas.height/2);
 
 		context.beginPath();
 		context.arc(0,0,50,0,2*Math.PI);
 		context.fillStyle = "#fff";
 		context.fill();
-
 		context.restore();
 
 	}
@@ -178,7 +179,7 @@ function Star(x,y) {
 
 	this.draw = function(){
 
-		console.log(this.x, this.y);
+		
 
 		context.save();
 		context.beginPath();
@@ -200,21 +201,17 @@ function Star(x,y) {
 
 function draw() {
 
-	
-
 	context.clearRect(0,0,canvas.width,canvas.height);
 
 	light.draw();
 
 	for (i=0; i<stars.length;i++){
-		stars[i].draw();
-		
+		stars[i].draw();	
 	}
 
 
 	for (j=0; j<butterflies.length;j++){
-		butterflies[j].draw();
-		
+		butterflies[j].draw();		
 	}
 	
 	requestAnimationFrame(draw);

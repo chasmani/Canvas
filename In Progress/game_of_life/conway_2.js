@@ -2,8 +2,6 @@
 var canvas = document.getElementById('conway');
 var context = canvas.getContext('2d');
 
-var cellCountX = 12;
-var cellCountY = 32;
 
 var cellWidth = 0;
 var cellHeight = 0;
@@ -17,32 +15,42 @@ var timeSinceLastFrame = 10000;
 var neighbourLocations = []
 
 
+variables = {
+
+	"cellCountX":12,
+	"cellCountY":32
+}
+
+
+
+
+
 function setup() {	
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 	canvas.style.backgroundColor = '#ddd';
-	cellWidth = canvas.width/cellCountX;
+	cellWidth = canvas.width/variables["cellCountX"];
 	
-	cellHeight = canvas.height/cellCountY;
+	cellHeight = canvas.height/variables["cellCountY"];
 
 	cells = []
 
-	for (i=0;i<cellCountX;i++){
-		for(j=0;j<cellCountY;j++){
+	for (i=0;i<variables["cellCountX"];i++){
+		for(j=0;j<variables["cellCountY"];j++){
 			var state = Math.round(Math.random());
 			cells.push(state);
 		}
 	}
 
 	neighbourLocations = [
-	-1-cellCountX,
-	-cellCountX,
-	1-cellCountX,
+	-1-variables["cellCountX"],
+	-variables["cellCountX"],
+	1-variables["cellCountX"],
 	-1,
 	+1,
-	-1+cellCountX,
-	cellCountX,
-	+1+cellCountX
+	-1+variables["cellCountX"],
+	variables["cellCountX"],
+	+1+variables["cellCountX"]
 	]
 
 	nextCells = []
@@ -99,8 +107,8 @@ function draw(){
 			}
 
 
-			var x = k%cellCountX;
-			var y = Math.floor(k/cellCountX);
+			var x = k%variables["cellCountX"];
+			var y = Math.floor(k/variables["cellCountX"]);
 			
 
 			context.fillRect(x*cellWidth, y*cellHeight, cellWidth, cellHeight);
@@ -122,20 +130,65 @@ function draw(){
 
 
 
-cellsHorizontalInput = document.getElementById("cellsHorizontal");
-cellsHorizontalValue = document.getElementById("cellsHorizontal-value");
+function makeSlider(variable, inputName, range){
 
-cellsHorizontalInput.addEventListener("change", function() {
+
+	var inputId = inputName
+	var inputValueId = inputName + "-value"
+
+	var slider = '<label for="' + inputName + '">' + inputName + ' = <span id="' + inputValueId + '">' + String(variable) + '</span></label><input type="range" min="1" max="' + String(range) + '" id="' + inputName + '">'
+
+	var canvasControls = document.getElementById("canvas-controls");
+	canvasControls.innerHTML += slider;
+
+
+	var sliderInput = document.getElementById(inputId);
+	var sliderValue = document.getElementById(inputValueId);
+
+	sliderInput.addEventListener("change", function() {
     
-	
-	cellsHorizontalValue.textContent = cellsHorizontalInput.value;
+		sliderValue.textContent = sliderInput.value;
+		variable = parseInt(sliderInput.value);
+		setup();
 
-	cellCountX = parseInt(cellsHorizontalInput.value);
-	setup();
+	}, false);
+
+}
 
 
+function makeSlider2(variable, inputName, range){
+
+
+	var inputId = inputName
+	var inputValueId = inputName + "-value"
+
+	var slider = '<label for="' + inputName + '">' + inputName + ' = <span id="' + inputValueId + '">' + String(variables[variable]) + '</span></label>' + 
+	'<input data-variable-name="' + variable + '" type="range" min="1" max="' + String(range) + '" id="' + inputName + '">'
+
+	var canvasControls = document.getElementById("canvas-controls");
+	canvasControls.innerHTML += slider;
+
+	var sliderInput = document.getElementById(inputId);
+	var sliderValue = document.getElementById(inputValueId);
+
+	console.log(sliderInput);
+
+	sliderInput.addEventListener("change", function() {
+		console.log("Change");
     
-}, false);
+		sliderValue.textContent = sliderInput.value;
+		variable = parseInt(sliderInput.value);
+		setup();
+
+	}, false);
+
+}
+
+
+
+makeSlider2("cellCountX", "cellCountX", 32);
+makeSlider2("cellCountY", "cellCountY", 32);
+
 
 
 
