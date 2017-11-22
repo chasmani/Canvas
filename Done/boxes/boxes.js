@@ -1,17 +1,26 @@
 
-var canvas = document.getElementById('canvas_13');
+var canvas = document.getElementById('my-canvas');
 var context = canvas.getContext('2d');
 
-unitSize = Math.min(window.innerHeight, window.innerWidth)/15;
-heightVector = null;
-rightVector = null;
-leftVector = null;
-angle = Math.PI/4;
-center = null
-state = new State();
+canvas.height = canvas.offsetHeight;
+canvas.width = canvas.offsetWidth;
 
-setup();
+canvas.style.backgroundColor = '#262626';
 
+var unitSize = Math.min(canvas.height, canvas.width)/15;
+var center = {
+		x:canvas.width/2,
+		y:canvas.height/2
+	}
+
+
+var heightVector = null;
+var rightVector = null;
+var leftVector = null;
+var angle = Math.PI/4;
+var state = new State();
+
+setVectors(angle);
 
 function setVectors(angle) {
 	heightVector = {
@@ -26,19 +35,6 @@ function setVectors(angle) {
 		x:-unitSize*Math.cos(Math.PI/2 - angle),
 		y:-unitSize*Math.sin(Math.PI/2 - angle)*0.5
 	}
-}
-
-
-function setup() {
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-	unitSize = Math.min(window.innerHeight, window.innerWidth)/15;
-	center = {
-		x:window.innerWidth/2,
-		y:window.innerHeight/2
-	}
-	canvas.style.backgroundColor = '#262626';
-	setVectors(angle);
 }
 
 
@@ -180,10 +176,6 @@ function is_touch_device() {
 };
 
 
-window.addEventListener('resize', function(event){
-	setup();
-});
-
 
 window.addEventListener('click', function(event) {
 	state.transition();
@@ -199,4 +191,37 @@ window.addEventListener('mousemove', function(event){
 })
 
 
-requestAnimationFrame(draw);
+/* Resize canvas function */
+function resizeCanvas() {
+	canvas.height = canvas.offsetHeight;
+	canvas.width = canvas.offsetWidth;
+	unitSize = Math.min(canvas.height, canvas.width)/15;
+	center = {
+		x:canvas.width/2,
+		y:canvas.height/2
+	}
+	setVectors(angle);
+}
+
+
+window.addEventListener('resize', function(event){
+    resizeCanvas();
+});
+
+var canvasSection = document.getElementById("article-canvas");
+
+/* Full screen buttons */
+document.getElementById("fullscreen-button").addEventListener("click", function() {
+	canvasSection.className += " full-screen-canvas";
+	resizeCanvas();
+	document.body.style.overflow="hidden";
+});
+
+document.getElementById("leave-fullscreen-button").addEventListener("click", function() {	
+	canvasSection.classList.remove("full-screen-canvas");
+	resizeCanvas();
+	document.body.style.overflow="scroll";
+});
+
+
+draw();

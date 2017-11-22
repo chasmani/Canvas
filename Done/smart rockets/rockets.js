@@ -1,52 +1,47 @@
-/* Setup canvas and make it resize on demand */
 
-var canvas = document.getElementById('canvas_10');
+// Canvas setup
+var canvas = document.getElementById('my-canvas');
 var context = canvas.getContext('2d');
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+canvas.height = canvas.offsetHeight;
+canvas.width = canvas.offsetWidth;
 
 context.lineWidth = 10;
 context.lineCap = 'round';
 canvas.style.backgroundColor = '#1E8BC3';
 
 
-gravityStrength = 0.15;
-mainThrusterPower = 0.31;
-
-var targetX = 220;
-var targetY = 160;
+// Rockets and physics
+var gravityStrength = 0.15;
+var mainThrusterPower = 0.31;
+var rocketLength = 30;
+var rockets = []
+var rocketCount = 20;
+var dnaLength = 250;
+var currentFrame = 0;
+var matingPool = [];
+var currentGeneration = 0;
+var lastGenerationFitness = 0;
+var mutationProbability = 0.005;
+var maxDistanceFitness = 50;
+var fitnessDistanceDecayConstant = 0.001;
 
 var rocketImage = new Image;
-rocketImage.src = "004-rocket-launch-1.png";
+rocketImage.src = "http://chasmani.com/media/uploads/2017/11/22/004-rocket-launch-1.png";
 
+// Local image for development offline
+//rocketImage.src = "004-rocket-launch-1.png";
 
-rocketLength = 30;
-
-rockets = []
-
-rocketCount = 20;
-
-dnaLength = 250;
-
-currentFrame = 0;
-
-
-
+// Target
+var targetX = canvas.width - canvas.width/6;
+var targetY = 60;
 var target = new Target(targetX, targetY);
 target.draw();
 
-matingPool = [];
 
-currentGeneration = 0;
-lastGenerationFitness = 0;
-
-mutationProbability = 0.005;
-
-maxDistanceFitness = 50;
-fitnessDistanceDecayConstant = 0.001;
 
 function populateRockets() {
+    rockets = [];
 		
 	for(i=0;i<rocketCount;i++){
 
@@ -54,28 +49,32 @@ function populateRockets() {
 			newDna = buildRandomDna();
 		}
 		else{
-			newDna = crossoverDna();
+			try{
+				newDna = crossoverDna();
+			}
+			catch(e){
+				console.log("Error caught");
+			}
 		}		
 
 		rocket = new Rocket(newDna);
 		rockets.push(rocket);
 	}	
-
 	
 }
 
 
 function Target(x,y) {
 
-	this.x = x;
-	this.y = y;
+    this.x = x;
+    this.y = y;
 
     this.draw = function (){
-	    context.fillStyle = "#c0392b";
+	context.fillStyle = "#c0392b";
 
-		context.beginPath();
-		context.arc(this.x,this.y,50,0,2*Math.PI);
-		context.fill();
+	context.beginPath();
+	context.arc(this.x,this.y,50,0,2*Math.PI);
+	context.fill();
 	}
 }
 
@@ -83,7 +82,7 @@ function Target(x,y) {
 function Rocket(dna) {
 
 	this.x = canvas.width/2;
-	this.y = canvas.height;
+	this.y = canvas.height- rocketLength;
 	this.angle = 0;
 	this.velX = 0;
 	this.velY = 0;
@@ -231,10 +230,18 @@ function draw() {
 function writeFitness() {
 
     context.fillStyle = "#ccc";
-    context.font = "32px Arial";
+    if(canvas.width>600){
+    
+	context.font = "32px Arial";
+    }
+    else{
+	context.font = "12px Arial";
+    }
+
+    
     context.textAlign = "center";
     fitnessString = "".concat("Generation ", currentGeneration, " - ", "Fitness ", lastGenerationFitness);
-    context.fillText(fitnessString, canvas.width/2, canvas.height/3);
+    context.fillText(fitnessString, canvas.width/2, canvas.height/2.5);
 
 
 }
@@ -245,9 +252,7 @@ function newGeneration() {
 
 	currentGeneration += 1;
 	currentFrame = 0;
-	buildMatingPool();
-
-	rockets = [];
+    buildMatingPool();
 
 	populateRockets();
 
@@ -294,8 +299,6 @@ function crossoverDna() {
 	dnaParent2 = matingPool[Math.floor(Math.random()*matingPool.length)];
 	dna = []
 
-
-
 	for(j=0;j<dnaLength;j++){
 
 		if (Math.random() < mutationProbability) {
@@ -310,28 +313,56 @@ function crossoverDna() {
 
 }
 
-
 populateRockets();
-draw();
 
 
-window.onclick = function(event) {
-	targetX = event.clientX;
-	targetY = event.clientY;
-	console.log(targetX, targetY);
-	target = new Target(targetX, targetY);
+rocketImage.onload = function() {
+        draw();        
+      };
 
-	console.log(rocketImage);
-	
+
+/* Reset the canvas function */
+function resetCanvas() {	
+	currentGeneration = 0;
+	populateRockets();
 }
 
+/* Resize canvas function */
+function resizeCanvas() {
+	canvas.height = canvas.offsetHeight;
+	canvas.width = canvas.offsetWidth;
+}
 
-// At the moment doesn't work
-// Need to first work out how to build the dna without breaking the for loop - not sure why this is breaking but it is
-// Then make rockets move base don dna
+window.addEventListener('resize', function(event){
+  
+    resizeCanvas();
 
-// Then work out how to build the fitness function
+});
 
-// 1. At the end fo each generation, start next generation, and record generation number
-// 2. Reset adn then bulid build mating pool
-// 3. Reset population and bulid new rockets from mating pool, using crossover funciton to dynamically genreate DNA
+
+var canvasSection = document.getElementById("article-canvas");
+
+/* Full screen buttons */
+document.getElementById("fullscreen-button").addEventListener("click", function() {
+	canvasSection.className += " full-screen-canvas";
+	resizeCanvas();
+	document.body.style.overflow="hidden";
+});
+
+document.getElementById("leave-fullscreen-button").addEventListener("click", function() {	
+	canvasSection.classList.remove("full-screen-canvas");
+	resizeCanvas();
+	document.body.style.overflow="scroll";
+});
+
+
+var resetButton = document.createElement("button");
+resetButton.innerHTML = "Reset";
+resetButton.className += "btn btn-default"
+
+var buttonContainer = document.getElementById("canvas-buttons");
+buttonContainer.appendChild(resetButton);
+
+resetButton.addEventListener ("click", function() {
+	resetCanvas();
+});

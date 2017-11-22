@@ -1,10 +1,9 @@
 /* Setup canvas and make it resize on demand */
-var canvas = document.getElementById('canvas_9');
+var canvas = document.getElementById('my-canvas');
 var context = canvas.getContext('2d');
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
+canvas.height = canvas.offsetHeight;
+canvas.width = canvas.offsetWidth;
 /*
 Need to properly work out dimension of room at each z level, to make ball bounce properly
 */
@@ -81,6 +80,32 @@ function draw(){
 
 	requestAnimationFrame(draw)
 }
+
+/* Resize canvas function */
+function resizeCanvas() {
+	canvas.height = canvas.offsetHeight;
+	canvas.width = canvas.offsetWidth;
+}
+
+window.addEventListener('resize', function(event){
+    resizeCanvas();
+});
+
+
+var canvasSection = document.getElementById("article-canvas");
+
+/* Full screen buttons */
+document.getElementById("fullscreen-button").addEventListener("click", function() {
+	canvasSection.className += " full-screen-canvas";
+	resizeCanvas();
+	document.body.style.overflow="hidden";
+});
+
+document.getElementById("leave-fullscreen-button").addEventListener("click", function() {	
+	canvasSection.classList.remove("full-screen-canvas");
+	resizeCanvas();
+	document.body.style.overflow="scroll";
+});
 
 
 

@@ -1,6 +1,9 @@
 /* Setup canvas and make it resize on demand */
-var canvas = document.getElementById('canvas_9');
+var canvas = document.getElementById('my-canvas');
 var context = canvas.getContext('2d');
+
+canvas.height = canvas.offsetHeight;
+canvas.width = canvas.offsetWidth;
 
 var grid = [];
 var length = 35;
@@ -13,31 +16,31 @@ var colorSchemes = [
 
 var currentScheme = 0;
 
-setup();
 
-function setup() {
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-	console.log(colorSchemes[currentScheme])
-	canvas.style.backgroundColor = colorSchemes[currentScheme].background;
+canvas.style.backgroundColor = colorSchemes[currentScheme].background;
 
-	gridGap = 34;
-	gridGap = 7*Math.min(canvas.height, canvas.width)/108;
-
-	context.lineWidth = 11;
-	context.lineCap = 'round';
-	gridLength = 12;
+context.lineCap = 'round';
+var gridLength = 12;
 	
+
+var grid = createGrid();
+
+function createGrid() {
+	gridGap = 7*Math.min(canvas.height, canvas.width)/108;
 	context.lineWidth = gridGap/3;
+	context.lineCap = 'round';
 	length = gridGap/2.26;
-	grid = [];
+	newGrid = [];
 	for(i=0;i<gridLength;i++){
 		for(j=0;j<gridLength;j++){
 			var line = new Line(i,j);
-			grid.push(line)	
+			newGrid.push(line);	
 		}
 	}
+	return newGrid
+
 }
+
 
 
 function Line(i,j) {
@@ -161,6 +164,36 @@ document.onclick = function(event) {
 
 
 }
+
+
+/* Resize canvas function */
+
+function resizeCanvas() {
+	
+	canvas.height = canvas.offsetHeight;
+	canvas.width = canvas.offsetWidth;
+	grid = createGrid();
+}
+
+window.addEventListener('resize', function(event){
+    resizeCanvas();
+});
+
+
+var canvasSection = document.getElementById("article-canvas");
+
+/* Full screen buttons */
+document.getElementById("fullscreen-button").addEventListener("click", function() {
+	canvasSection.className += " full-screen-canvas";
+	resizeCanvas();
+	document.body.style.overflow="hidden";
+});
+
+document.getElementById("leave-fullscreen-button").addEventListener("click", function() {	
+	canvasSection.classList.remove("full-screen-canvas");
+	resizeCanvas();
+	document.body.style.overflow="scroll";
+});
 
 
 window.addEventListener("resize", setup);

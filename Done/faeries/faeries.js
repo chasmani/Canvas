@@ -1,8 +1,7 @@
 /* Grab canvas and context */
 var canvas = document.getElementById('my-canvas');
 var context = canvas.getContext('2d');
-canvas.style.width = "100%";
-canvas.style.height = "50vh";
+
 canvas.height = canvas.offsetHeight;
 canvas.width = canvas.offsetWidth;
 
@@ -218,34 +217,20 @@ window.addEventListener('resize', function(event){
 });
 
 
+var canvasSection = document.getElementById("article-canvas");
+
 /* Full screen buttons */
 document.getElementById("fullscreen-button").addEventListener("click", function() {
-	
-	canvas.style.width = "100%";
-	canvas.style.height = "100%";
-	canvas.style.position = "fixed";
-	canvas.style.left=0;
-	canvas.style.top=0;
-
-	console.log(window.innerWidth);
+	canvasSection.className += " full-screen-canvas";
 	resizeCanvas();
-	document.getElementById("fullscreen-button").style.display = "none";
-	document.getElementById("leave-fullscreen-button").style.display = "inline";
+	document.body.style.overflow="hidden";
 });
 
-document.getElementById("leave-fullscreen-button").addEventListener("click", function() {
-	
-	canvas.style.width = "100%";
-	canvas.style.height = "50vh";
-	canvas.style.position = "relative";
-	canvas.style.left="none";	
-	canvas.style.top="none";	
+document.getElementById("leave-fullscreen-button").addEventListener("click", function() {	
+	canvasSection.classList.remove("full-screen-canvas");
 	resizeCanvas();
-	document.getElementById("fullscreen-button").style.display = "inline";
-	document.getElementById("leave-fullscreen-button").style.display = "none";
+	document.body.style.overflow="scroll";
 });
-
-
 
 
 draw();
