@@ -1,25 +1,32 @@
 
 // Canvas setup
-var canvas = document.getElementById('canvas_12');
+var canvas = document.getElementById('my-canvas');
 var context = canvas.getContext('2d');
+
+canvas.height = canvas.offsetHeight;
+canvas.width = canvas.offsetWidth;
+
 
 context.lineWidth = 10;
 context.lineCap = 'round';
 canvas.style.backgroundColor = '#1E8BC3';
-setupCanvas();
 
-wall1x = 0;
-wall2x = canvas.width/2;
-var wall = new Wall(wall1x, wall2x, canvas.height/3, 20);
-wall.draw();
-var walls = [];
-walls.push(wall)
 
-var wall2 = new Wall(canvas.width/2, canvas.width, 2*canvas.height/3,20);
-walls.push(wall2) 
 
-var oneWall = new Wall(canvas.width/4, 3*canvas.width/4,canvas.height/2,20);
-walls = [oneWall];
+/* Build walls - Drop into a function and run with resizeCanvas */
+
+// Split the screen into fifths, with 3 gaps and 2 walls.
+walls = buildWalls()
+
+function buildWalls() {
+
+	var wall1 = new Wall(canvas.width/7, 2*canvas.width/7,canvas.height/2,20);
+	var wall2 = new Wall(3*canvas.width/7, 4*canvas.width/7,canvas.height/2,20);
+	var wall3 = new Wall(5*canvas.width/7, 6*canvas.width/7,canvas.height/2,20);
+	return [wall1, wall2, wall3]
+
+}
+
 
 // Rockets and physics
 var gravityStrength = 0.15;
@@ -39,9 +46,6 @@ var rocketImage = new Image;
 var crashImage = new Image;
 var targetImage = new Image;
 
-rocketImage.src = "http://www.chasmani.com/media/uploads/2017/03/23/004-rocket-launch-1.png";
-crashImage.src = "001-explosion-red.png";
-targetImage.src = "001-asteroid.png";
 
 // Use local image in local env, so can develop when offline
 if(window.location.protocol == "file:"){
@@ -49,24 +53,17 @@ if(window.location.protocol == "file:"){
 	crashImage.src = "001-explosion-red.png";
 	targetImage.src = "001-asteroid.png";
 } else {
-	rocketImage.src = "http://www.chasmani.com/media/uploads/2017/03/23/004-rocket-launch-1.png";
-	crashImage.src = "http://www.chasmani.com/media/uploads/2017/04/14/001-explosion-red.png";
-	targetImage.src = "http://www.chasmani.com/media/uploads/2017/04/14/001-asteroid.png";
+	rocketImage.src = "http://chasmani.com/media/uploads/2017/11/22/004-rocket-launch-1.png";
+	crashImage.src = "http://chasmani.com/media/uploads/2017/11/23/001-explosion-red.png";
+	targetImage.src = "http://chasmani.com/media/uploads/2017/11/23/001-asteroid.png";
 }
 
 // Target
-var targetX = 100 + canvas.width/4;
-var targetY = 160;
-var target = new Target(targetX, targetY);
-target.draw();
+
+var target = new Target();
+
 
 var survivingRockets = true;
-
-
-function setupCanvas() {
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-}
 
 
 function populateRockets() {
@@ -78,7 +75,13 @@ function populateRockets() {
 			newDna = buildRandomDna();
 		}
 		else{
-			newDna = crossoverDna();
+			try{
+				newDna = crossoverDna();
+			}
+			catch(e){
+				console.log("Error caught");
+				newDna = buildRandomDna();
+			}
 		}		
 
 		rocket = new Rocket(newDna);
@@ -102,17 +105,18 @@ function Wall(x1, x2, height, thickness) {
 }
 
 
-function Target(x,y) {
+function Target() {
 
-	this.x = x;
-	this.y = y;
-	this.imageWidth = 0; 
+	this.x = canvas.width/2;
+	this.y = 60;
+	this.imageWidth = 64;
+	
 
 	this.draw = function (){
 		context.fillStyle = "#c0392b";
 		context.drawImage(targetImage, this.x-this.imageWidth/2,this.y-this.imageWidth/2, this.imageWidth,this.imageWidth);
-		this.imageWidth = 7* targetImage.width/16;
 	}
+	this.draw();
 }
 
 
@@ -202,7 +206,7 @@ function Rocket(dna) {
 
 	this.targetCollisionDetection = function() {
 		distanceToTarget = Math.sqrt((this.x-target.x)*(this.x-target.x) + (this.y-target.y)*(this.y-target.y));
-		if(distanceToTarget < 50){
+		if(distanceToTarget < target.imageWidth/2){
 			this.success = true;
 		}
 		if(distanceToTarget<this.closestDistance){
@@ -220,7 +224,7 @@ function Rocket(dna) {
 	this.wallCollisionDetection = function() {
 
 		for(k=0;k<walls.length;k++){
-			if((this.y<walls[k].y2)&&(this.y>walls[k].y1)&&(this.x>walls[k].x1)&&(this.x<walls[k].x2)){
+			if(((this.y-5)<walls[k].y2)&&((this.y+5)>walls[k].y1)&&((this.x+3)>walls[k].x1)&&((this.x-3)<walls[k].x2)){
 				this.crashed = true;
 				this.stateImage = crashImage;		
 			}
@@ -325,9 +329,52 @@ function crossoverDna() {
 	return dna;
 }
 
-window.addEventListener('resize', function(event){
-	setupCanvas();
-});
 
 populateRockets();
 draw();
+
+
+/* Resize canvas function */
+function resizeCanvas() {
+	canvas.height = canvas.offsetHeight;
+	canvas.width = canvas.offsetWidth;
+	walls=buildWalls();
+	target = new Target();
+}
+
+
+function resetCanvas() {
+	currentGeneration = 0;
+	populateRockets();
+}
+
+window.addEventListener('resize', function(event){
+    resizeCanvas();
+});
+
+
+var canvasSection = document.getElementById("article-canvas");
+
+/* Full screen buttons */
+document.getElementById("fullscreen-button").addEventListener("click", function() {
+	canvasSection.className += " full-screen-canvas";
+	resizeCanvas();
+	document.body.style.overflow="hidden";
+});
+
+document.getElementById("leave-fullscreen-button").addEventListener("click", function() {	
+	canvasSection.classList.remove("full-screen-canvas");
+	resizeCanvas();
+	document.body.style.overflow="scroll";
+});
+
+var resetButton = document.createElement("button");
+resetButton.innerHTML = "Reset";
+resetButton.className += "btn btn-default"
+
+var buttonContainer = document.getElementById("canvas-buttons");
+buttonContainer.appendChild(resetButton);
+
+resetButton.addEventListener ("click", function() {
+	resetCanvas();
+});
