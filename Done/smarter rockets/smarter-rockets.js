@@ -42,10 +42,11 @@ var lastGenerationFitness = 0;
 var mutationProbability = 0.005;
 var maxDistanceFitness = 50;
 var fitnessDistanceDecayConstant = 0.001;
+
+
 var rocketImage = new Image;
 var crashImage = new Image;
 var targetImage = new Image;
-
 
 // Use local image in local env, so can develop when offline
 if(window.location.protocol == "file:"){

@@ -1,43 +1,46 @@
-var canvas = document.getElementById('canvas_7');
+var canvas = document.getElementById('my-canvas');
 var context = canvas.getContext('2d');
 
+canvas.height = canvas.offsetHeight;
+canvas.width = canvas.offsetWidth;
+canvas.style.backgroundColor = "#27ae60";
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 
-var img = new Image;
-var img = document.getElementById("myImg");
+var antImage = new Image;
+var nestImage = new Image;
+
+// Use local image in local env, so can develop when offline
+if(window.location.protocol == "file:"){
+	antImage.src = "ant.png";
+	// nestImage.src = "001-explosion-red.png";
+	
+} else {
+	
+}
+
 
 var centreX = canvas.width/2;
 var centreY = canvas.height/2;
 
-
-var antCount = Math.floor(canvas.width/100);
+// Ants!
+var antCount = canvas.width/20;
 var ants = [];
-var foods = [];
+for(i=0;i<antCount;i++){
+	var ant = new Ant();
+	ants.push(ant)
+}
 
+// Nest
+var nest1 = new Nest();
+var nests = [nest1]
+
+// Food
+var foods = [];
 var food1 = new Food(100, 100);
 foods = [food1]
-var nest1;
-var nests; 
 
-function setup() {
+scents = []
 
-	canvas.width = window.innerWidth;
-	canvas.height = window.innerHeight;
-	canvas.style.backgroundColor = "#27ae60";
-	antCount = Math.floor(canvas.width/100);
-	ants = [];
-	for(i=0;i<antCount;i++){
-		var ant = new Ant();
-		ants.push(ant)
-	}
-
-	nest1 = new Nest();
-	nests = [nest1]
-
-
-}
 
 function Ant() {
 	this.x = Math.floor(Math.random()*canvas.width);
@@ -45,17 +48,17 @@ function Ant() {
 	this.direction = (Math.random()*2*Math.PI);
 	this.carryingFood = false;
 
-
 	this.drawAnt = function() {
 		context.translate(this.x, this.y);
 		context.rotate(this.direction);
-		context.drawImage(img,- img.width/8,-img.height/8, img.width/4,img.height/4);
+		context.drawImage(antImage,- antImage.width/16,-antImage.height/16, antImage.width/8,antImage.height/8);
 		context.rotate(-this.direction);
 		context.translate(-this.x, -this.y);
 
 		this.moveAnt();
 		this.wrapAnt();
 		this.changeDirection();
+		this.dropScent();
 
 	}
 
@@ -110,6 +113,14 @@ function Ant() {
 		}
 	}
 
+	this.dropScent = function() {
+
+		if (this.carryingFood == true) {
+			scent = new Scent(this.x, this.y)
+			scents.push(scent)
+		}
+
+	}
 
 }
 
@@ -119,11 +130,9 @@ function Food(xPos, yPos) {
 	this.y = yPos;
 	this.size = 50;
 
-
 	this.drawFood = function() {
 
 		if (this.size > 5) {
-
 			context.beginPath();
 	      	context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
 	      	context.fillStyle = '#34495e';
@@ -135,10 +144,8 @@ function Food(xPos, yPos) {
 	}
 
 	this.eaten = function() {
-		this.size -= 5;
+		this.size -= 1;
 	}
-
-
 }
 
 function Nest() {
@@ -148,6 +155,9 @@ function Nest() {
 
 
 	this.drawNest = function() {
+
+
+
 		context.beginPath();
       	context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
       	context.fillStyle = '#eee';
@@ -156,6 +166,21 @@ function Nest() {
 
 }
 
+function Scent(xPos, yPos) {
+
+	this.x = xPos;
+	this.y = yPos;
+	this.strength = 50;
+
+	this.drawScent = function() {
+		context.beginPath();
+      	context.arc(this.x, this.y, this.strength/10, 0, 2 * Math.PI);
+      	context.fillStyle = '#f4a460';
+      	context.fill();	
+
+	}
+
+}
 
 
 
@@ -197,18 +222,24 @@ function draw() {
 
 
 	for(k=0;k<nests.length;k++){
-		nests[k].drawNest()
+		nests[k].drawNest();
 	}
 
 
 	for(j=0;j<foods.length;j++){
-		foods[j].drawFood()
+		foods[j].drawFood();
 	}
 
 	
 	for(i=0;i<ants.length;i++){
-		ants[i].drawAnt()	
+		ants[i].drawAnt();	
 	}
+
+	for(l=0;l<scents.length;l++){
+		scents[l].drawScent();	
+	}
+
+
 
 	eat()
 	

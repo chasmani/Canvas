@@ -108,9 +108,6 @@ function resizeCanvas() {
 	
 }
 
-window.addEventListener('resize', function(event){
-    resizeCanvas();
-});
 
 
 var canvasSection = document.getElementById("article-canvas");
@@ -129,4 +126,4 @@ document.getElementById("leave-fullscreen-button").addEventListener("click", fun
 });
 
 
-window.addEventListener("resize", setup);
+window.addEventListener("resize", resizeCanvas);
