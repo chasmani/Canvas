@@ -26,21 +26,19 @@ var maxForce = 0.05;
 var showForces = false;
 
 // Create boids
-var boidCount = Math.floor(canvas.width/10);
+var boidCount = Math.floor(canvas.width/15);
 var boids = createBoids()
 
 function createBoids() {
 	newBoids = []
-
 	for (i=0; i<boidCount; i++){
-		console.log("hello");
 		newBoid = new Boid();
 		newBoids.push(newBoid);
 	}
 	return newBoids
 }
 
-
+// This constructor is used to create position and velocity vectors
 function Vector(x, y) {
   this.x = x;
   this.y = y;
@@ -80,7 +78,6 @@ Vector.prototype.average = function(quantity) {
   	this.y /= quantity;
 };
 
-
 // Set maximum value
 Vector.prototype.max = function(maxMagnitude) {
 	currentMagnitude = this.getMagnitude(); 
@@ -104,9 +101,9 @@ Vector.prototype.inverseSquareForce = function(v2){
 	return new Vector(dx*force, dy*force);
 }
 
-
 function Boid(x,y) {
 
+	// If an x and y position are given, set initial position, otherwise in the middle of the canvas
 	if((x)&&(y)){
 		this.position = new Vector(x, y)	
 	} else {
@@ -115,8 +112,10 @@ function Boid(x,y) {
 	
 	this.velocity = new Vector(maxVelocity*(0.5-Math.random()), maxVelocity*(0.5-Math.random()))
 	
+	// Keep track of the boid's neighbours
 	this.localBoids = []
 
+	// Each time step, calcualte the new velocity, change the position and wrap around sides
 	this.move = function() {	
 		this.calculateVelocity();
 		this.position.addTo(this.velocity);
@@ -142,7 +141,6 @@ function Boid(x,y) {
 
 	// Draw the boid itself
 	this.draw = function() {
-		
 		context.save();
 		context.translate(this.position.x, this.position.y);
 		context.rotate(this.velocity.getDirection());
@@ -159,13 +157,14 @@ function Boid(x,y) {
 	}
 
 	// Combine forces acting on boid, apply force to velocity as an acceleration
-	this.calculateVelocity = function() {
-		
+	this.calculateVelocity = function() {		
+		// get a list of indices of neighouring boids (speeds up calculations later)
 		this.findLocalBoids();
+		// Calculate forece vectors
 		var alignment = this.alignmentVector();
 		var cohesion = this.cohesionVector();
 		var seperation = this.seperationVector();
-
+		// Apply force vectors to velocity as accelerations
 		this.velocity.addTo(alignment, alignmentWeight);
 		this.velocity.addTo(cohesion, cohesionWeight);
 		this.velocity.addTo(seperation, seperationWeight);
@@ -326,7 +325,7 @@ toggleShowForcesButton.addEventListener ("click", function() {
 });
 
 // Add new boids if the suer clicks the screen
-document.addEventListener("click", function(){
+document.addEventListener("click", function(event){
 	var canvasRect = canvas.getBoundingClientRect();    
 	cursor_x = event.clientX - canvasRect.left;
 	cursor_y = event.clientY - canvasRect.top;
