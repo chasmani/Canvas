@@ -7,11 +7,12 @@ canvas.width = canvas.offsetWidth;
 
 /* Colour scheme */
 canvas.style.backgroundColor = "#44BBFF";
-context.fillStyle = "#112233";
 
 /* Parameters */
-var boidVisionLength = 50; 
+var boidColor = "#112233";
 
+var boidVisionLength = 50; 
+var visionCircleColor = "#fff";
 
 
 var boids = createBoids()
@@ -19,40 +20,97 @@ var boids = createBoids()
 // Create the initial boids
 function createBoids() {
 	newBoids = []
-	for (i=0; i<10; i++){
+	for (i=0; i<20; i++){
 		newBoid = new Boid();
 		newBoids.push(newBoid);
 	}
 	return newBoids
 }
 
+function Vector(x, y) {
+  this.x = x;
+  this.y = y;
+};
+
+// return the angle of the vector in radians
+Vector.prototype.getDirection = function() {
+	return Math.atan2(this.y, this.x);
+};
+
+// get the magnitude of the vector
+Vector.prototype.getMagnitude = function() {
+	// use pythagoras theorem to work out the magnitude of the vector
+	return Math.sqrt(this.x * this.x + this.y * this.y);
+};
+
+
+
+// add a vector to this one
+Vector.prototype.addTo = function(v2) {
+	this.x += v2.x;
+  	this.y += v2.y;
+};
+
+// Average over a quantity
+Vector.prototype.average = function(quantity) {
+	this.x /= quantity;
+  	this.y /= quantity;
+};
+
+// Normalise to desired magnitude
+Vector.prototype.normalise = function(desiredMagnitude) {
+	normisationFactor = this.getMagnitude()/desiredMagnitude;
+	this.x /= normisationFactor;
+  	this.y /= normisationFactor;
+};
+
+
+
+
+// 1. Alignement
+// Add alignment of all nearby boids
+// Divide by neighbour count (get vaerage velocity)
+// Scaling factor i.e. normalise
+// https://gamedevelopment.tutsplus.com/tutorials/3-simple-rules-of-flocking-behaviors-alignment-cohesion-and-separation--gamedev-3444
+// EASIER IN CARTESIAN
+
+// 2. Cohesion
+// Add position of all nearbby boids 
+// Divide by neighbour count (get average position)
+// Put it in relation to this boid (x-x0) etc
+// Normalise it to 1
+// EASIER IN CARTESIAN
+
+// Seperation
+
+
+
 function Boid() {
 
 	this.x = canvas.width/2;
 	this.y = canvas.height/2;
 
-	this.velX = 0.5-Math.random();
-	this.velY = 0.5-Math.random();
+	this.vel = new Vector(0.5-Math.random(), 0.5-Math.random());
 
 	this.localBoids = []
 
 	this.move = function() {
 		this.reynolds();
 
-		this.x += this.velX;
-		this.y += this.velY;
-		//console.log(this.x, this.y);
+		this.x += this.vel.x;
+		this.y += this.vel.y;
+		
 		this.wrapSides();
-		this.speedLimit();
+		
 	}
 
 	this.wrapSides = function() {
 		
-		if (this.x<0){
-			this.x += canvas.width;
+		if (this.x<-50){
+			this.x += (canvas.width+50);
 		}
-		if (this.y<0){
-			this.y += canvas.height;
+		if (this.y<-50){
+			this.y += (canvas.height+50);
 		}
 		if (this.x>(canvas.width+50)){
 			this.x -= (canvas.width+50);
@@ -64,11 +122,7 @@ function Boid() {
 	}
 
 	this.speedLimit = function() {
-		if((this.velX*this.velX + this.velY*this.velY)>10){
-			this.velX = 0.9*this.velX;
-			this.velY = 0.9*this.velY;
-			this.speedLimit()
-		}
+		// add as function in vector
 	}
 
 
@@ -76,7 +130,8 @@ function Boid() {
 	this.draw = function() {
 		context.save();
 		context.translate(this.x, this.y);
-		context.rotate(Math.atan(this.velY/this.velX));
+		
+		context.rotate(this.vel.getDirection());
 		context.beginPath();
 		context.moveTo(0, 0);
 		context.lineTo(-50, 10);
@@ -86,14 +141,17 @@ function Boid() {
 		context.restore();
 	}
 
+	// Combine forces acting on boid, apply force to velocity as an acceleration
 	this.reynolds = function() {
 		
-		this.alignmentVector();
+		this.findLocalBoids();
+		var alignment = this.alignmentVector();
 
+		this.speedLimit();
 
 	}
 
-	// Get an array of boids within vision range (array of index numbers)
+	// Set an array of boids within vision range (array of index numbers)
 	this.findLocalBoids = function() {
 
 		this.localBoids = [];
@@ -104,6 +162,10 @@ function Boid() {
 			}
 		}
 
+		context.beginPath();
+		context.arc(this.x,this.y,boidVisionLength,0,2*Math.PI);
+		context.strokeStyle= visionCircleColor;
+		context.stroke();
 	}
 
 	// get the average of local boids velocities
@@ -111,31 +173,25 @@ function Boid() {
 	// the same direction
 	this.alignmentVector = function() {
 		
-		averageVelX = 0;
-		averageVelY = 0;
-
-		for (var k=0; k<boids.length; k++){
-			var distance = Math.sqrt(Math.pow((this.x-boids[k].x), 2) + Math.pow((this.y-boids[k].y), 2))
-			if (distance<boidVisionLength){
-
-				averageVelX += boids[k].velX;
-				averageVelY += boids[k].velY;
-			}
+		alignV = new Vector(0,0);
+		
+		for (var k=0; k<this.localBoids.length; k++){
+			alignV.addTo(boids[this.localBoids[k]].vel)
 		}
 
-		this.velX += averageVelX/500;
-		this.velY += averageVelY/500;
+		alignV.average(this.localBoids.length);
+		alignV.normalise(1);
 
 
 
-		if (boids.indexOf(this)===0){
-			context.beginPath();
-			
-			context.moveTo(this.x,this.y);
-			context.lineTo(this.x+(5*averageVelX),this.y+(5*averageVelY));
-			context.strokeStyle = "#ECF0F1";
-			context.stroke();	
-		}
+		// Draw it
+		context.beginPath();	
+		context.moveTo(this.x,this.y);
+		context.lineTo(this.x+(boidVisionLength*alignV.x),this.y+(boidVisionLength*	alignV.y));
+		context.strokeStyle = "yellow";
+		context.stroke();	
+		
+		
 
 		
 	}
