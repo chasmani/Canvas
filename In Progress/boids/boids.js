@@ -16,6 +16,8 @@ var visionCircleColor = "#fff";
 
 /* Alignment */
 var alignmentWeight = 0.02;
+var cohesionWeight = 0.02;
+
 
 
 var boids = createBoids()
@@ -63,6 +65,12 @@ Vector.prototype.addTo = function(v2, weight) {
 	  }
 };
 
+// subtract a vector from this one
+Vector.prototype.subtractFrom = function(v2) {
+	this.x -= v2.x;
+  	this.y -= v2.y;
+};
+
 // Average over a quantity
 Vector.prototype.average = function(quantity) {
 	this.x /= quantity;
@@ -71,9 +79,11 @@ Vector.prototype.average = function(quantity) {
 
 // Normalise to desired magnitude
 Vector.prototype.normalise = function(desiredMagnitude) {
-	normisationFactor = this.getMagnitude()/desiredMagnitude;
-	this.x /= normisationFactor;
-  	this.y /= normisationFactor;
+	if (this.getMagnitude() !=0){
+		normisationFactor = this.getMagnitude()/desiredMagnitude;
+		this.x /= normisationFactor;
+	  	this.y /= normisationFactor;
+	  }
 };
 
 // Get distance from this to another vector
@@ -165,10 +175,10 @@ function Boid() {
 		
 		this.findLocalBoids();
 		var alignment = this.alignmentVector();
-
+		var cohesion = this.cohesionVector();
 
 		this.velocity.addTo(alignment, alignmentWeight);
-
+		this.velocity.addTo(cohesion, cohesionWeight);
 		this.velocity.normalise(1);
 
 	}
@@ -224,11 +234,26 @@ function Boid() {
 
 		// Sum positions of all local boids
 		for (var l=0; l<this.localBoids.length; l++){
-			alignV.addTo(boids[this.localBoids[l]].position)
+			cohesionV.addTo(boids[this.localBoids[l]].position)
 		}
 
+		// Average positions
+		cohesionV.average(this.localBoids.length);
+				
+		// Get relative position
+		cohesionV.subtractFrom(this.position);
+		
+		// Normalise alignment vector to magnitude 1
+		cohesionV.normalise(1);
+		
+		// Draw alignment vector
+		context.beginPath();	
+		context.moveTo(this.position.x,this.position.y);
+		context.lineTo(this.position.x+(boidVisionLength*cohesionV.x),this.position.y+(boidVisionLength*cohesionV.y));
+		context.strokeStyle = "green";
+		context.stroke();		
 
-
+		return cohesionV;	
 
 	}
 
