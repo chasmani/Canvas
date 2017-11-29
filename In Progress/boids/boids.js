@@ -14,6 +14,9 @@ var boidColor = "#112233";
 var boidVisionLength = 50; 
 var visionCircleColor = "#fff";
 
+/* Alignment */
+var alignmentWeight = 0.02;
+
 
 var boids = createBoids()
 
@@ -32,6 +35,10 @@ function Vector(x, y) {
   this.y = y;
 };
 
+Vector.prototype.toArray = function() {
+  return [this.x, this.y];
+};
+
 // return the angle of the vector in radians
 Vector.prototype.getDirection = function() {
 	return Math.atan2(this.y, this.x);
@@ -46,9 +53,14 @@ Vector.prototype.getMagnitude = function() {
 
 
 // add a vector to this one
-Vector.prototype.addTo = function(v2) {
-	this.x += v2.x;
-  	this.y += v2.y;
+Vector.prototype.addTo = function(v2, weight) {
+	if (weight){
+		this.x += v2.x * weight;
+	  	this.y += v2.y * weight;
+	} else {
+		this.x += v2.x;
+	  	this.y += v2.y;
+	  }
 };
 
 // Average over a quantity
@@ -64,6 +76,10 @@ Vector.prototype.normalise = function(desiredMagnitude) {
   	this.y /= normisationFactor;
 };
 
+// Get distance from this to another vector
+Vector.prototype.getDistance = function(v2) {
+	return Math.sqrt(Math.pow((this.x-v2.x), 2) + Math.pow((this.y-v2.y), 2))
+};
 
 
 
@@ -87,37 +103,38 @@ Vector.prototype.normalise = function(desiredMagnitude) {
 
 function Boid() {
 
-	this.x = canvas.width/2;
-	this.y = canvas.height/2;
-
-	this.vel = new Vector(0.5-Math.random(), 0.5-Math.random());
+	this.position = new Vector(canvas.width/2, canvas.height/2)
+	
+	this.velocity = new Vector(0.5-Math.random(), 0.5-Math.random())
+	
 
 	this.localBoids = []
 
 	this.move = function() {
+		
 		this.reynolds();
-
-		this.x += this.vel.x;
-		this.y += this.vel.y;
+		
+		
+		this.position.addTo(this.velocity);
 		
 		this.wrapSides();
-		
+	
 	}
 
 	this.wrapSides = function() {
 		
-		if (this.x<-50){
-			this.x += (canvas.width+50);
+		if (this.position.x<-50){
+			this.position.x += (canvas.width+50);
 		}
-		if (this.y<-50){
-			this.y += (canvas.height+50);
+		if (this.position.y<-50){
+			this.position.y += (canvas.height+50);
 		}
-		if (this.x>(canvas.width+50)){
-			this.x -= (canvas.width+50);
+		if (this.position.x>(canvas.width+50)){
+			this.position.x -= (canvas.width+50);
 			
 		}
-		if (this.y>(canvas.height+50)){
-			this.y -= (canvas.height+50);	
+		if (this.position.y>(canvas.height+50)){
+			this.position.y -= (canvas.height+50);	
 		}
 	}
 
@@ -128,10 +145,12 @@ function Boid() {
 
 
 	this.draw = function() {
-		context.save();
-		context.translate(this.x, this.y);
 		
-		context.rotate(this.vel.getDirection());
+		context.save();
+		
+		context.translate(this.position.x, this.position.y);
+		
+		context.rotate(this.velocity.getDirection());
 		context.beginPath();
 		context.moveTo(0, 0);
 		context.lineTo(-50, 10);
@@ -147,53 +166,70 @@ function Boid() {
 		this.findLocalBoids();
 		var alignment = this.alignmentVector();
 
-		this.speedLimit();
+
+		this.velocity.addTo(alignment, alignmentWeight);
+
+		this.velocity.normalise(1);
 
 	}
 
 	// Set an array of boids within vision range (array of index numbers)
+	// To do - add wrapping (maybe)
 	this.findLocalBoids = function() {
 
 		this.localBoids = [];
 		for (var k=0; k<boids.length; k++){
-			var distance = Math.sqrt(Math.pow((this.x-boids[k].x), 2) + Math.pow((this.y-boids[k].y), 2))
+			var distance = this.position.getDistance(boids[k].position);
 			if (distance<boidVisionLength){
 				this.localBoids.push(k)
 			}
 		}
 
 		context.beginPath();
-		context.arc(this.x,this.y,boidVisionLength,0,2*Math.PI);
+		
+		context.arc(this.position.x,this.position.y,boidVisionLength,0,2*Math.PI);
 		context.strokeStyle= visionCircleColor;
 		context.stroke();
 	}
 
-	// get the average of local boids velocities
-	// Adds to velocity in a cartesian way, rather than rotating. So boids will want to speed up if they are in a flock moving in
-	// the same direction
+	// Get the alignment force vector
 	this.alignmentVector = function() {
 		
 		alignV = new Vector(0,0);
 		
-		for (var k=0; k<this.localBoids.length; k++){
-			alignV.addTo(boids[this.localBoids[k]].vel)
+		// Sum alginments of all local boids
+		for (var m=0; m<this.localBoids.length; m++){
+			alignV.addTo(boids[this.localBoids[m]].velocity)
 		}
 
+		// Average alignment
 		alignV.average(this.localBoids.length);
+		
+		// Normalise alignment vector to magnitude 1
 		alignV.normalise(1);
 
-
-
-		// Draw it
+		// Draw alignment vector
 		context.beginPath();	
-		context.moveTo(this.x,this.y);
-		context.lineTo(this.x+(boidVisionLength*alignV.x),this.y+(boidVisionLength*	alignV.y));
+		context.moveTo(this.position.x,this.position.y);
+		context.lineTo(this.position.x+(boidVisionLength*alignV.x),this.position.y+(boidVisionLength*alignV.y));
 		context.strokeStyle = "yellow";
-		context.stroke();	
-		
-		
+		context.stroke();		
 
-		
+		return alignV;	
+	}
+
+	this.cohesionVector = function() {
+
+		cohesionV = new Vector(0,0);
+
+		// Sum positions of all local boids
+		for (var l=0; l<this.localBoids.length; l++){
+			alignV.addTo(boids[this.localBoids[l]].position)
+		}
+
+
+
+
 	}
 
 
@@ -206,7 +242,7 @@ function draw() {
 		boids[j].move();
 		boids[j].draw();
 	}
-  requestAnimationFrame(draw);
+  	requestAnimationFrame(draw);
 }
 
 draw();
