@@ -11,13 +11,13 @@ canvas.style.backgroundColor = "#44BBFF";
 /* Parameters */
 var boidColor = "#112233";
 
-var boidVisionLength = 50; 
+var boidVisionLength = 100; 
 var visionCircleColor = "#fff";
 
 /* Alignment */
 var alignmentWeight = 0.02;
-var cohesionWeight = 0.02;
-
+var cohesionWeight = 0.01;
+var seperationWeight = 0.8;
 
 
 var boids = createBoids()
@@ -86,10 +86,25 @@ Vector.prototype.normalise = function(desiredMagnitude) {
 	  }
 };
 
+// get opposite vector
+Vector.prototype.invert = function() {
+	
+	if (this.x!=0){
+		this.x = -1/this.x;	
+	}
+	if (this.y!=0){
+		this.y = -1/this.y;	
+	}
+	
+	
+};
+
 // Get distance from this to another vector
 Vector.prototype.getDistance = function(v2) {
 	return Math.sqrt(Math.pow((this.x-v2.x), 2) + Math.pow((this.y-v2.y), 2))
 };
+
+
 
 
 
@@ -176,9 +191,11 @@ function Boid() {
 		this.findLocalBoids();
 		var alignment = this.alignmentVector();
 		var cohesion = this.cohesionVector();
+		var seperation = this.seperationVector();
 
 		this.velocity.addTo(alignment, alignmentWeight);
 		this.velocity.addTo(cohesion, cohesionWeight);
+		this.velocity.addTo(seperation, seperationWeight);
 		this.velocity.normalise(1);
 
 	}
@@ -228,6 +245,7 @@ function Boid() {
 		return alignV;	
 	}
 
+	// Move towards center of mass
 	this.cohesionVector = function() {
 
 		cohesionV = new Vector(0,0);
@@ -244,7 +262,7 @@ function Boid() {
 		cohesionV.subtractFrom(this.position);
 		
 		// Normalise alignment vector to magnitude 1
-		cohesionV.normalise(1);
+		//cohesionV.normalise(1);
 		
 		// Draw alignment vector
 		context.beginPath();	
@@ -256,6 +274,40 @@ function Boid() {
 		return cohesionV;	
 
 	}
+
+
+	// Need to replace this iwth an inverse square type law
+	this.seperationVector = function() {
+
+		sepV = new Vector(0,0);
+
+		// Sum distance from current boid of all local neighbours
+		for (var n=0; n<this.localBoids.length; n++){
+
+			sepV.addTo(boids[this.localBoids[n]].position);
+			sepV.subtractFrom(this.position);
+		}
+
+		// Average positions
+		sepV.average(this.localBoids.length);
+		
+		// Normalise with negative 1 to get repulsive force
+		sepV.invert()
+
+		sepV.normalise(1);
+
+		// Draw seperation vector
+		context.beginPath();	
+		context.moveTo(this.position.x,this.position.y);
+		context.lineTo(this.position.x+(boidVisionLength*cohesionV.x),this.position.y+(boidVisionLength*cohesionV.y));
+		context.strokeStyle = "red";
+		context.stroke();		
+
+		return sepV;		
+
+	}
+
+
 
 
 }
